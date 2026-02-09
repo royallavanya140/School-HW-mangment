@@ -4,10 +4,11 @@ import { rm, readFile } from "fs/promises";
 
 // server deps to bundle to reduce openat(2) syscalls
 // which helps cold start times
+// Packages to bundle; others are external. connect-pg-simple must stay external
+// so it can find its table.sql via __dirname (node_modules/connect-pg-simple/).
 const allowlist = [
   "@google/generative-ai",
   "axios",
-  "connect-pg-simple",
   "cors",
   "date-fns",
   "drizzle-orm",

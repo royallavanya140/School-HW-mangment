@@ -18,8 +18,12 @@ import {
   isHindi,
 } from "@shared/homework-format";
 
-const __dirname = path.dirname(fileURLToPath(import.meta.url));
-const FONTS_DIR = path.join(__dirname, "fonts");
+// ESM: use import.meta.url; CJS bundle: use process.cwd()/server (import.meta is undefined in CJS)
+const _serverDir =
+  typeof import.meta !== "undefined" && import.meta.url
+    ? path.dirname(fileURLToPath(import.meta.url))
+    : path.join(process.cwd(), "server");
+const FONTS_DIR = path.join(_serverDir, "fonts");
 
 // Layout constants (must match client HomeworkTemplate for same PDF/image format)
 const PDF_LAYOUT = {
