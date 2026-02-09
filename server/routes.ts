@@ -58,29 +58,6 @@ function generateHomeworkPDF(
   const homeworkColWidth = contentWidth - subjectColWidth;
   let currentY = 50;
 
-  // ---- CENTER WATERMARK: circular logo only, more visible and larger ----
-  const centerWatermarkUrl = watermarkUrl ?? logoUrl;
-  const centerX = pageWidth / 2;
-  const centerY = 420;
-  const watermarkSize = 280;
-  const watermarkRadius = watermarkSize / 2;
-  if (centerWatermarkUrl) {
-    try {
-      doc.save();
-      doc.rotate(-45, { origin: [centerX, centerY] });
-      doc.circle(centerX, centerY, watermarkRadius);
-      doc.clip();
-      doc.opacity(0.4);
-      doc.image(centerWatermarkUrl, centerX - watermarkRadius, centerY - watermarkRadius, {
-        width: watermarkSize,
-        height: watermarkSize,
-      });
-      doc.restore();
-    } catch (e) {
-      console.error("Error adding watermark to PDF:", e);
-    }
-  }
-
   // ---- TOP ACCENT BAR ----
   doc.fillColor("#1e3a8a").rect(0, 0, pageWidth, 4).fill();
   currentY += 10;
@@ -212,6 +189,29 @@ function generateHomeworkPDF(
     width: contentWidth,
     align: "center",
   });
+
+  // ---- WATERMARK ON TOP: transparent overlay, circular clip for proper circle ----
+  const centerWatermarkUrl = watermarkUrl ?? logoUrl;
+  if (centerWatermarkUrl) {
+    try {
+      const centerX = pageWidth / 2;
+      const centerY = 420;
+      const watermarkSize = 380;
+      const watermarkRadius = watermarkSize / 2;
+      doc.save();
+      doc.rotate(-45, { origin: [centerX, centerY] });
+      doc.circle(centerX, centerY, watermarkRadius);
+      doc.clip();
+      doc.opacity(0.2);
+      doc.image(centerWatermarkUrl, centerX - watermarkRadius, centerY - watermarkRadius, {
+        width: watermarkSize,
+        height: watermarkSize,
+      });
+      doc.restore();
+    } catch (e) {
+      console.error("Error adding watermark to PDF:", e);
+    }
+  }
 }
 
 export async function registerRoutes(

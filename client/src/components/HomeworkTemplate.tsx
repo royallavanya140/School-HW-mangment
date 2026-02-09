@@ -48,45 +48,7 @@ export function HomeworkTemplate({
         position: "relative",
       }}
     >
-      {/* Centered watermark: circular logo only, more visible */}
-      {centerWatermarkUrl && (
-        <div
-          aria-hidden
-          className="absolute inset-0 flex items-center justify-center pointer-events-none"
-          style={{
-            transform: "rotate(-45deg)",
-            left: "-15%",
-            right: "-15%",
-            top: "-15%",
-            bottom: "-15%",
-          }}
-        >
-          <div
-            style={{
-              width: 280,
-              height: 280,
-              borderRadius: "50%",
-              overflow: "hidden",
-              flexShrink: 0,
-            }}
-          >
-            <img
-              src={centerWatermarkUrl}
-              alt=""
-              style={{
-                width: "100%",
-                height: "100%",
-                objectFit: "cover",
-                opacity: 0.4,
-                filter: "grayscale(100%)",
-                userSelect: "none",
-                pointerEvents: "none",
-              }}
-            />
-          </div>
-        </div>
-      )}
-
+      {/* Content first so it renders underneath */}
       <div style={{ position: "relative", zIndex: 1, padding: `0 ${LAYOUT.margin}px ${LAYOUT.margin}px` }}>
         <div style={{ paddingTop: 14 }}>
           {/* Top accent bar */}
@@ -252,6 +214,43 @@ export function HomeworkTemplate({
           </div>
         </div>
       </div>
+
+      {/* Transparent watermark on top of table — circular crop for proper circle shape */}
+      {centerWatermarkUrl && (
+        <div
+          aria-hidden
+          className="absolute inset-0 flex items-center justify-center pointer-events-none"
+          style={{ zIndex: 2 }}
+        >
+          <div
+            style={{
+              width: 380,
+              height: 380,
+              borderRadius: "50%",
+              overflow: "hidden",
+              transform: "rotate(-45deg)",
+              border: "none",
+              outline: "none",
+            }}
+          >
+            <img
+              src={centerWatermarkUrl}
+              alt=""
+              style={{
+                width: "100%",
+                height: "100%",
+                objectFit: "cover",
+                opacity: 0.2,
+                filter: "grayscale(100%)",
+                userSelect: "none",
+                pointerEvents: "none",
+                border: "none",
+                outline: "none",
+              }}
+            />
+          </div>
+        </div>
+      )}
     </div>
   );
 }
