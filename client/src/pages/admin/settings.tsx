@@ -10,8 +10,9 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
-import { Trash2, Plus, Loader2, Eye, EyeOff, Lock } from "lucide-react";
+import { Trash2, Plus, Loader2, Eye, EyeOff, Lock, Building2, BookOpen } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   Form,
   FormControl,
@@ -113,244 +114,268 @@ export default function SettingsPage() {
 
   return (
     <LayoutShell>
-      <div className="max-w-2xl mx-auto space-y-6">
-        <h2 className="text-2xl font-bold tracking-tight">Settings</h2>
+      <div className="flex flex-col">
+        <h2 className="text-2xl font-bold tracking-tight mb-4">Settings</h2>
 
-        {/* General Settings */}
-        <Card>
-          <CardHeader>
-            <CardTitle>General Information</CardTitle>
-            <CardDescription>Update your school details</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-6">
-              <form onSubmit={handleUpdateSchool} className="space-y-4">
-                <div className="space-y-2">
-                  <Label htmlFor="schoolName">School Name</Label>
-                  <Input 
-                    id="schoolName" 
-                    name="schoolName" 
-                    defaultValue={settings?.schoolName || ""} 
-                    placeholder="Enter school name"
-                  />
-                </div>
-                <Button type="submit" disabled={updateSettings.isPending}>
-                  {updateSettings.isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                  Save Changes
-                </Button>
-              </form>
+        <Tabs defaultValue="general" className="space-y-4">
+          {/* Headers at top */}
+          <TabsList className="w-full sm:w-auto h-auto flex flex-wrap gap-1 bg-muted/50 p-1.5 rounded-lg">
+            <TabsTrigger value="general" className="gap-2 px-4 py-2.5 data-[state=active]:bg-background data-[state=active]:shadow-sm">
+              <Building2 className="w-4 h-4 shrink-0" />
+              General
+            </TabsTrigger>
+            <TabsTrigger value="password" className="gap-2 px-4 py-2.5 data-[state=active]:bg-background data-[state=active]:shadow-sm">
+              <Lock className="w-4 h-4 shrink-0" />
+              Password
+            </TabsTrigger>
+            <TabsTrigger value="subjects" className="gap-2 px-4 py-2.5 data-[state=active]:bg-background data-[state=active]:shadow-sm">
+              <BookOpen className="w-4 h-4 shrink-0" />
+              Subjects
+            </TabsTrigger>
+          </TabsList>
 
-              <div className="space-y-4 pt-4 border-t">
-                <div className="space-y-2">
-                  <Label>School Logo</Label>
-                  <div className="flex items-center gap-4">
-                    {settings?.logoUrl && (
-                      <div className="relative w-20 h-20 border rounded overflow-hidden bg-white">
-                        <img 
-                          src={settings.logoUrl} 
-                          alt="School Logo" 
-                          className="w-full h-full object-contain"
-                        />
+          {/* Content below headers */}
+          <div>
+              <TabsContent value="general" className="mt-0 focus-visible:outline-none">
+                <Card className="border rounded-lg">
+                  <CardHeader>
+                    <CardTitle>General Information</CardTitle>
+                    <CardDescription>Update your school details</CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="space-y-6">
+                      <form onSubmit={handleUpdateSchool} className="space-y-4">
+                        <div className="space-y-2">
+                          <Label htmlFor="schoolName">School Name</Label>
+                          <Input
+                            id="schoolName"
+                            name="schoolName"
+                            defaultValue={settings?.schoolName || ""}
+                            placeholder="Enter school name"
+                          />
+                        </div>
+                        <Button type="submit" disabled={updateSettings.isPending}>
+                          {updateSettings.isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                          Save Changes
+                        </Button>
+                      </form>
+
+                      <div className="space-y-4 pt-4 border-t">
+                        <div className="space-y-2">
+                          <Label>School Logo</Label>
+                          <div className="flex items-center gap-4">
+                            {settings?.logoUrl && (
+                              <div className="relative w-20 h-20 border rounded overflow-hidden bg-white">
+                                <img
+                                  src={settings.logoUrl}
+                                  alt="School Logo"
+                                  className="w-full h-full object-contain"
+                                />
+                              </div>
+                            )}
+                            <div className="flex-1">
+                              <Input
+                                id="logo"
+                                type="file"
+                                accept="image/*"
+                                onChange={handleLogoUpload}
+                                className="cursor-pointer"
+                              />
+                              <p className="text-xs text-muted-foreground mt-2">
+                                Upload an image (PNG/JPG) to use as the school logo in PDFs.
+                              </p>
+                            </div>
+                          </div>
+                        </div>
+
+                        <div className="space-y-4 pt-4 border-t">
+                          <div className="space-y-2">
+                            <Label>Watermark</Label>
+                            <div className="flex items-center gap-4">
+                              {settings?.watermarkUrl && (
+                                <div className="relative w-20 h-20 border rounded overflow-hidden bg-white">
+                                  <img
+                                    src={settings.watermarkUrl}
+                                    alt="Watermark"
+                                    className="w-full h-full object-contain"
+                                  />
+                                </div>
+                              )}
+                              <div className="flex-1">
+                                <Input
+                                  id="watermark"
+                                  type="file"
+                                  accept="image/*"
+                                  onChange={handleWatermarkUpload}
+                                  className="cursor-pointer"
+                                />
+                                <p className="text-xs text-muted-foreground mt-2">
+                                  Upload an image to use as a watermark on homework templates (image and PDF).
+                                </p>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
                       </div>
-                    )}
-                    <div className="flex-1">
-                      <Input 
-                        id="logo" 
-                        type="file" 
-                        accept="image/*"
-                        onChange={handleLogoUpload}
-                        className="cursor-pointer"
+                    </div>
+                  </CardContent>
+                </Card>
+              </TabsContent>
+
+              <TabsContent value="password" className="mt-0 focus-visible:outline-none">
+                <Card className="border rounded-lg">
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                      <Lock className="w-5 h-5" />
+                      Change Password
+                    </CardTitle>
+                    <CardDescription>Update your admin account password</CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <Form {...passwordForm}>
+                      <form onSubmit={passwordForm.handleSubmit(handlePasswordChange)} className="space-y-4 max-w-md">
+                        <FormField
+                          control={passwordForm.control}
+                          name="currentPassword"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Current Password</FormLabel>
+                              <FormControl>
+                                <div className="relative">
+                                  <Input
+                                    type={showCurrentPassword ? "text" : "password"}
+                                    placeholder="Enter current password"
+                                    {...field}
+                                    className="pr-10"
+                                  />
+                                  <button
+                                    type="button"
+                                    onClick={() => setShowCurrentPassword(!showCurrentPassword)}
+                                    className="absolute right-0 top-0 h-full w-10 flex items-center justify-center text-muted-foreground hover:text-foreground transition-colors"
+                                  >
+                                    {showCurrentPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                                  </button>
+                                </div>
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                        <FormField
+                          control={passwordForm.control}
+                          name="newPassword"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>New Password</FormLabel>
+                              <FormControl>
+                                <div className="relative">
+                                  <Input
+                                    type={showNewPassword ? "text" : "password"}
+                                    placeholder="Enter new password"
+                                    {...field}
+                                    className="pr-10"
+                                  />
+                                  <button
+                                    type="button"
+                                    onClick={() => setShowNewPassword(!showNewPassword)}
+                                    className="absolute right-0 top-0 h-full w-10 flex items-center justify-center text-muted-foreground hover:text-foreground transition-colors"
+                                  >
+                                    {showNewPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                                  </button>
+                                </div>
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                        <FormField
+                          control={passwordForm.control}
+                          name="confirmPassword"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Confirm New Password</FormLabel>
+                              <FormControl>
+                                <div className="relative">
+                                  <Input
+                                    type={showConfirmPassword ? "text" : "password"}
+                                    placeholder="Confirm new password"
+                                    {...field}
+                                    className="pr-10"
+                                  />
+                                  <button
+                                    type="button"
+                                    onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                                    className="absolute right-0 top-0 h-full w-10 flex items-center justify-center text-muted-foreground hover:text-foreground transition-colors"
+                                  >
+                                    {showConfirmPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                                  </button>
+                                </div>
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                        <Button
+                          type="submit"
+                          disabled={changePassword.isPending}
+                          className="w-full"
+                        >
+                          {changePassword.isPending ? (
+                            <>
+                              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                              Changing Password...
+                            </>
+                          ) : (
+                            "Change Password"
+                          )}
+                        </Button>
+                      </form>
+                    </Form>
+                  </CardContent>
+                </Card>
+              </TabsContent>
+
+              <TabsContent value="subjects" className="mt-0 focus-visible:outline-none">
+                <Card className="border rounded-lg">
+                  <CardHeader>
+                    <CardTitle>Subjects</CardTitle>
+                    <CardDescription>Manage subjects available for homework</CardDescription>
+                  </CardHeader>
+                  <CardContent className="space-y-6">
+                    <div className="flex gap-2">
+                      <Input
+                        value={newSubject}
+                        onChange={(e) => setNewSubject(e.target.value)}
+                        placeholder="New subject name..."
+                        onKeyDown={(e) => e.key === "Enter" && handleAddSubject()}
                       />
-                      <p className="text-xs text-muted-foreground mt-2">
-                        Upload an image (PNG/JPG) to use as the school logo in PDFs.
-                      </p>
+                      <Button onClick={handleAddSubject} disabled={createSubject.isPending}>
+                        <Plus className="w-4 h-4" />
+                      </Button>
                     </div>
-                  </div>
-                </div>
 
-                <div className="space-y-4 pt-4 border-t">
-                  <div className="space-y-2">
-                    <Label>Watermark</Label>
-                    <div className="flex items-center gap-4">
-                      {settings?.watermarkUrl && (
-                        <div className="relative w-20 h-20 border rounded overflow-hidden bg-white">
-                          <img
-                            src={settings.watermarkUrl}
-                            alt="Watermark"
-                            className="w-full h-full object-contain"
-                          />
-                        </div>
-                      )}
-                      <div className="flex-1">
-                        <Input
-                          id="watermark"
-                          type="file"
-                          accept="image/*"
-                          onChange={handleWatermarkUpload}
-                          className="cursor-pointer"
-                        />
-                        <p className="text-xs text-muted-foreground mt-2">
-                          Upload an image to use as a watermark on homework templates (image and PDF).
-                        </p>
-                      </div>
+                    <div className="flex flex-wrap gap-2">
+                      {subjects?.map((subject) => (
+                        <Badge
+                          key={subject.id}
+                          variant="secondary"
+                          className="px-3 py-1 text-sm flex items-center gap-2"
+                        >
+                          {subject.name}
+                          <button
+                            onClick={() => deleteSubject.mutate(subject.id)}
+                            className="hover:text-destructive transition-colors"
+                          >
+                            <Trash2 className="w-3 h-3" />
+                          </button>
+                        </Badge>
+                      ))}
                     </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Password Change */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Lock className="w-5 h-5" />
-              Change Password
-            </CardTitle>
-            <CardDescription>Update your admin account password</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <Form {...passwordForm}>
-              <form onSubmit={passwordForm.handleSubmit(handlePasswordChange)} className="space-y-4">
-                <FormField
-                  control={passwordForm.control}
-                  name="currentPassword"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Current Password</FormLabel>
-                      <FormControl>
-                        <div className="relative">
-                          <Input
-                            type={showCurrentPassword ? "text" : "password"}
-                            placeholder="Enter current password"
-                            {...field}
-                            className="pr-10"
-                          />
-                          <button
-                            type="button"
-                            onClick={() => setShowCurrentPassword(!showCurrentPassword)}
-                            className="absolute right-0 top-0 h-full w-10 flex items-center justify-center text-muted-foreground hover:text-foreground transition-colors"
-                          >
-                            {showCurrentPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                          </button>
-                        </div>
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={passwordForm.control}
-                  name="newPassword"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>New Password</FormLabel>
-                      <FormControl>
-                        <div className="relative">
-                          <Input
-                            type={showNewPassword ? "text" : "password"}
-                            placeholder="Enter new password"
-                            {...field}
-                            className="pr-10"
-                          />
-                          <button
-                            type="button"
-                            onClick={() => setShowNewPassword(!showNewPassword)}
-                            className="absolute right-0 top-0 h-full w-10 flex items-center justify-center text-muted-foreground hover:text-foreground transition-colors"
-                          >
-                            {showNewPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                          </button>
-                        </div>
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={passwordForm.control}
-                  name="confirmPassword"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Confirm New Password</FormLabel>
-                      <FormControl>
-                        <div className="relative">
-                          <Input
-                            type={showConfirmPassword ? "text" : "password"}
-                            placeholder="Confirm new password"
-                            {...field}
-                            className="pr-10"
-                          />
-                          <button
-                            type="button"
-                            onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                            className="absolute right-0 top-0 h-full w-10 flex items-center justify-center text-muted-foreground hover:text-foreground transition-colors"
-                          >
-                            {showConfirmPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                          </button>
-                        </div>
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <Button
-                  type="submit"
-                  disabled={changePassword.isPending}
-                  className="w-full"
-                >
-                  {changePassword.isPending ? (
-                    <>
-                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                      Changing Password...
-                    </>
-                  ) : (
-                    "Change Password"
-                  )}
-                </Button>
-              </form>
-            </Form>
-          </CardContent>
-        </Card>
-
-        {/* Subjects Management */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Subjects</CardTitle>
-            <CardDescription>Manage subjects available for homework</CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-6">
-            <div className="flex gap-2">
-              <Input 
-                value={newSubject}
-                onChange={(e) => setNewSubject(e.target.value)}
-                placeholder="New subject name..."
-                onKeyDown={(e) => e.key === 'Enter' && handleAddSubject()}
-              />
-              <Button onClick={handleAddSubject} disabled={createSubject.isPending}>
-                <Plus className="w-4 h-4" />
-              </Button>
-            </div>
-
-            <div className="flex flex-wrap gap-2">
-              {subjects?.map((subject) => (
-                <Badge 
-                  key={subject.id} 
-                  variant="secondary" 
-                  className="px-3 py-1 text-sm flex items-center gap-2"
-                >
-                  {subject.name}
-                  <button 
-                    onClick={() => deleteSubject.mutate(subject.id)}
-                    className="hover:text-destructive transition-colors"
-                  >
-                    <Trash2 className="w-3 h-3" />
-                  </button>
-                </Badge>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
+                  </CardContent>
+                </Card>
+              </TabsContent>
+          </div>
+        </Tabs>
       </div>
     </LayoutShell>
   );
