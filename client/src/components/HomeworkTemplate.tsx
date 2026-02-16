@@ -6,6 +6,7 @@ const LAYOUT = {
   pageWidth: 595,
   margin: 50,
   subjectColWidth: 120,
+  titleBlockHeight: 52,
   headerHeight: 40,
   rowHeight: 48,
 } as const;
@@ -13,6 +14,12 @@ const LAYOUT = {
 const formatDate = (d: string) => {
   const [y, m, day] = d.split("-");
   return `${day}/${m}/${y.slice(-2)}`;
+};
+
+const getDayName = (dateStr: string) => {
+  const [y, m, d] = dateStr.split("-").map(Number);
+  const date = new Date(y, m - 1, d);
+  return date.toLocaleDateString("en-US", { weekday: "long" });
 };
 
 export type HomeworkTemplateProps = {
@@ -23,6 +30,8 @@ export type HomeworkTemplateProps = {
   logoUrl?: string | null;
   /** Dedicated watermark image (used for center watermark). Falls back to logoUrl if not set. */
   watermarkUrl?: string | null;
+  address?: string | null;
+  contact?: string | null;
 };
 
 export function HomeworkTemplate({
@@ -32,25 +41,29 @@ export function HomeworkTemplate({
   schoolName,
   logoUrl,
   watermarkUrl,
+  address,
+  contact,
 }: HomeworkTemplateProps) {
   const contentWidth = LAYOUT.pageWidth - LAYOUT.margin * 2;
   const homeworkColWidth = contentWidth - LAYOUT.subjectColWidth;
   const totalWidth = LAYOUT.pageWidth;
   const centerWatermarkUrl = watermarkUrl ?? logoUrl;
+  const headerTitleWidth = contentWidth - (logoUrl ? 64 + 20 : 0);
 
   return (
     <div
-      className="homework-export-template bg-white text-slate-900 overflow-hidden"
+      className="homework-export-template bg-white text-slate-900"
       style={{
         width: totalWidth,
         minHeight: 700,
         fontFamily: "system-ui, -apple-system, sans-serif",
         position: "relative",
+        overflow: "visible",
       }}
     >
       {/* Content first so it renders underneath */}
-      <div style={{ position: "relative", zIndex: 1, padding: `0 ${LAYOUT.margin}px ${LAYOUT.margin}px` }}>
-        <div style={{ paddingTop: 14 }}>
+      <div style={{ position: "relative", zIndex: 1, padding: `0 ${LAYOUT.margin}px ${LAYOUT.margin}px`, overflow: "visible" }}>
+        <div style={{ paddingTop: 14, overflow: "visible" }}>
           {/* Top accent bar */}
           <div
             style={{
@@ -63,59 +76,87 @@ export function HomeworkTemplate({
             }}
           />
 
-          {/* Header: logo + text + class/date (same as PDF) */}
-          <div style={{ display: "flex", alignItems: "flex-start", gap: 20, marginBottom: 20 }}>
-            {logoUrl && (
-              <img
-                src={logoUrl}
-                alt=""
-                style={{
-                  width: 64,
-                  height: 64,
-                  objectFit: "contain",
-                  flexShrink: 0,
-                }}
-              />
-            )}
-            <div style={{ flex: 1, minWidth: 0, overflow: "hidden" }}>
-              <h1
-                style={{
-                  margin: 0,
-                  fontSize: 24,
-                  fontWeight: 700,
-                  color: "#0f172a",
-                  letterSpacing: "0.02em",
-                  whiteSpace: "nowrap",
-                  overflow: "hidden",
-                  textOverflow: "ellipsis",
-                }}
-              >
-                {schoolName.toUpperCase()}
-              </h1>
-              <p style={{ margin: "6px 0 0", fontSize: 12, color: "#475569" }}>
-                HOMEWORK DIARY
-              </p>
-            </div>
-            <div
-              style={{
-                border: "1px solid #e2e8f0",
-                borderRadius: 4,
-                padding: "8px 12px",
-                minWidth: 140,
-                textAlign: "left",
-              }}
-            >
-              <div style={{ fontSize: 10, fontWeight: 700, color: "#64748b" }}>
-                CLASS {className.toUpperCase()}
-              </div>
-              <div style={{ fontSize: 10, fontWeight: 700, color: "#64748b", marginTop: 2 }}>
-                DATE: {formatDate(date)}
+          {/* Header: logo + school name (single line) + subtitle; class/date on second row */}
+          <div style={{ marginBottom: 20, overflow: "visible" }}>
+            <div style={{ display: "flex", alignItems: "flex-start", gap: 20 }}>
+              {logoUrl && (
+                <img
+                  src={logoUrl}
+                  alt=""
+                  style={{
+                    width: 64,
+                    height: 64,
+                    objectFit: "contain",
+                    flexShrink: 0,
+                  }}
+                />
+              )}
+              <div style={{ width: headerTitleWidth, minWidth: headerTitleWidth, flexShrink: 0, overflow: "visible" }}>
+                <h1
+                  style={{
+                    margin: 0,
+                    fontSize: 24,
+                    fontWeight: 700,
+                    color: "#0f172a",
+                    letterSpacing: "0.02em",
+                    whiteSpace: "nowrap",
+                    overflow: "visible",
+                    textOverflow: "clip",
+                    lineHeight: 1.3,
+                  }}
+                >
+                  {schoolName.toUpperCase()}
+                </h1>
+                {address && (
+                  <p style={{ margin: "4px 0 0", fontSize: 11, color: "#475569", lineHeight: 1.4, overflow: "visible", fontWeight: 700 }}>
+                    Address: {address}
+                  </p>
+                )}
+                {contact && (
+                  <p style={{ margin: "2px 0 0", fontSize: 11, color: "#475569", lineHeight: 1.4, overflow: "visible", fontWeight: 700 }}>
+                    Contact: {contact}
+                  </p>
+                )}
               </div>
             </div>
           </div>
 
-          {/* Table (same structure as PDF) */}
+          {/* Table: Day | HOMEWORK DIARY | Date, then Class centered */}
           <div style={{ border: "1px solid #e2e8f0", borderRadius: "0 0 6px 6px", overflow: "hidden" }}>
+            <div
+              style={{
+                width: contentWidth,
+                minHeight: LAYOUT.titleBlockHeight,
+                background: "#f8fafc",
+                color: "#0f172a",
+                padding: "8px 14px",
+                borderBottom: "1px solid #e2e8f0",
+                display: "flex",
+                flexDirection: "column",
+                justifyContent: "center",
+              }}
+            >
+              <div
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "space-between",
+                  width: "100%",
+                  fontSize: 11,
+                  fontWeight: 700,
+                  color: "#64748b",
+                }}
+              >
+                <span style={{ flexShrink: 0 }}>Day: {getDayName(date)}</span>
+                <span style={{ fontSize: 14, fontWeight: 700, color: "#0f172a" }}>HOMEWORK DIARY</span>
+                <span style={{ flexShrink: 0 }}>Date: {formatDate(date)}</span>
+              </div>
+              <div style={{ textAlign: "center", fontSize: 10, fontWeight: 700, color: "#64748b", marginTop: 4 }}>
+                Class {className}
+              </div>
+            </div>
+
+          {/* Table (same structure as PDF) */}
             <div style={{ display: "flex", height: LAYOUT.headerHeight }}>
               <div
                 style={{

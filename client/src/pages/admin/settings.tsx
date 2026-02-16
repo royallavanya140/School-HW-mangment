@@ -92,9 +92,11 @@ export default function SettingsPage() {
     e.preventDefault();
     const formData = new FormData(e.currentTarget);
     const schoolName = formData.get("schoolName") as string;
-    
+    const address = formData.get("address") as string;
+    const contact = formData.get("contact") as string;
+
     try {
-      await updateSettings.mutateAsync({ schoolName });
+      await updateSettings.mutateAsync({ schoolName, address: address || undefined, contact: contact || undefined });
       toast({ title: "Settings updated" });
     } catch (error) {
       toast({ title: "Failed to update", variant: "destructive" });
@@ -152,6 +154,24 @@ export default function SettingsPage() {
                             name="schoolName"
                             defaultValue={settings?.schoolName || ""}
                             placeholder="Enter school name"
+                          />
+                        </div>
+                        <div className="space-y-2">
+                          <Label htmlFor="address">Address</Label>
+                          <Input
+                            id="address"
+                            name="address"
+                            defaultValue={settings?.address || ""}
+                            placeholder="School address"
+                          />
+                        </div>
+                        <div className="space-y-2">
+                          <Label htmlFor="contact">Contact</Label>
+                          <Input
+                            id="contact"
+                            name="contact"
+                            defaultValue={settings?.contact || ""}
+                            placeholder="Phone / email"
                           />
                         </div>
                         <Button type="submit" disabled={updateSettings.isPending}>

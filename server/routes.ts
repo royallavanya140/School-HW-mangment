@@ -30,6 +30,7 @@ const PDF_LAYOUT = {
   pageWidth: 595,
   margin: 50,
   subjectColWidth: 120,
+  titleBlockHeight: 52,
   headerHeight: 40,
   rowHeight: 48,
   headerBg: "#1e40af",
@@ -45,14 +46,22 @@ function generateHomeworkPDF(
   allSubjects: Subject[],
   schoolName: string,
   logoUrl?: string | null,
-  watermarkUrl?: string | null
+  watermarkUrl?: string | null,
+  address?: string | null,
+  contact?: string | null
 ) {
   const formatDate = (d: string) => {
     const [year, month, day] = d.split("-");
     return `${day}/${month}/${year.slice(-2)}`;
   };
 
-  const { pageWidth, margin, subjectColWidth, headerHeight, rowHeight, headerBg, headerBgRight } = PDF_LAYOUT;
+  const getDayName = (dateStr: string) => {
+    const [y, m, d] = dateStr.split("-").map(Number);
+    const dateObj = new Date(y, m - 1, d);
+    return dateObj.toLocaleDateString("en-US", { weekday: "long" });
+  };
+
+  const { pageWidth, margin, subjectColWidth, titleBlockHeight, headerHeight, rowHeight, headerBg, headerBgRight } = PDF_LAYOUT;
   const contentWidth = pageWidth - margin * 2;
   const startX = margin;
   const homeworkColWidth = contentWidth - subjectColWidth;
@@ -62,10 +71,11 @@ function generateHomeworkPDF(
   doc.fillColor("#1e3a8a").rect(0, 0, pageWidth, 4).fill();
   currentY += 10;
 
-  // ---- HEADER: logo and text never overlap ----
+  // ---- HEADER: logo + school name (single line) + subtitle; class/date on second row ----
   const logoWidth = 64;
   const logoHeight = 64;
   const textStartX = logoUrl ? startX + logoWidth + 20 : startX;
+  const textMaxWidth = startX + contentWidth - textStartX;
 
   if (logoUrl) {
     try {
@@ -76,21 +86,33 @@ function generateHomeworkPDF(
   }
 
   doc.fillColor("#0f172a").fontSize(24).font("Helvetica-Bold");
-  doc.text(schoolName.toUpperCase(), textStartX, currentY, {
-    width: contentWidth - (logoUrl ? logoWidth + 20 : 0),
-  });
+  doc.text(schoolName.toUpperCase(), textStartX, currentY, { width: textMaxWidth });
   currentY += 20;
-  doc.fillColor("#475569").fontSize(12).font("Helvetica");
-  doc.text("HOMEWORK DIARY", textStartX, currentY, { width: contentWidth });
-  currentY += 16;
+  if (address) {
+    doc.fillColor("#475569").fontSize(11).font("Helvetica");
+    doc.text(address, textStartX, currentY, { width: textMaxWidth });
+    currentY += 14;
+  }
+  if (contact) {
+    doc.fillColor("#475569").fontSize(11).font("Helvetica");
+    doc.text(contact, textStartX, currentY, { width: textMaxWidth });
+    currentY += 14;
+  }
+  if (address || contact) currentY += 2;
+  else currentY += 4;
 
-  const metaW = 160;
-  const metaX = startX + contentWidth - metaW;
-  doc.strokeColor("#e2e8f0").lineWidth(1).rect(metaX, currentY - 2, metaW, 28).stroke();
+  // ---- TABLE: top block = Day (left) | HOMEWORK DIARY (center) | Date (right), then Class centered ----
+  doc.fillColor("#f8fafc").rect(startX, currentY, contentWidth, titleBlockHeight).fill();
+  doc.strokeColor("#e2e8f0").lineWidth(0.5).rect(startX, currentY, contentWidth, titleBlockHeight).stroke();
+  doc.fillColor("#64748b").fontSize(11).font("Helvetica-Bold");
+  doc.text(`Day: ${getDayName(date)}`, startX + 14, currentY + 12, { width: contentWidth / 3, align: "left" });
+  doc.fillColor("#0f172a").fontSize(14).font("Helvetica-Bold");
+  doc.text("HOMEWORK DIARY", startX, currentY + 12, { width: contentWidth, align: "center" });
+  doc.fillColor("#64748b").fontSize(11).font("Helvetica-Bold");
+  doc.text(`Date: ${formatDate(date)}`, startX, currentY + 12, { width: contentWidth - 14, align: "right" });
   doc.fillColor("#64748b").fontSize(10).font("Helvetica-Bold");
-  doc.text(`CLASS ${className.toUpperCase()}`, metaX + 10, currentY + 6, { width: metaW - 20 });
-  doc.text(`DATE: ${formatDate(date)}`, metaX + 10, currentY + 16, { width: metaW - 20 });
-  currentY += 36;
+  doc.text(`Class ${className}`, startX, currentY + titleBlockHeight - 14, { width: contentWidth, align: "center" });
+  currentY += titleBlockHeight;
 
   // ---- TABLE ----
   doc.fillColor(headerBg).rect(startX, currentY, subjectColWidth, headerHeight).fill();
@@ -442,6 +464,8 @@ export async function registerRoutes(
     const schoolName = settings?.schoolName || "SCHOOL CONNECT";
     const logoUrl = settings?.logoUrl;
     const watermarkUrl = settings?.watermarkUrl;
+    const address = settings?.address;
+    const contact = settings?.contact;
 
     for (const [className, entries] of Object.entries(homeworkByClass)) {
       // Create PDF for each class using the same format as single PDF
@@ -460,7 +484,7 @@ export async function registerRoutes(
       });
 
       // Generate PDF content using the same helper function
-      generateHomeworkPDF(doc, className, date, entries, allSubjects, schoolName, logoUrl, watermarkUrl);
+      generateHomeworkPDF(doc, className, date, entries, allSubjects, schoolName, logoUrl, watermarkUrl, address, contact);
 
       doc.end();
 
@@ -485,6 +509,8 @@ export async function registerRoutes(
     const schoolName = settings?.schoolName || "SCHOOL CONNECT";
     const logoUrl = settings?.logoUrl;
     const watermarkUrl = settings?.watermarkUrl;
+    const address = settings?.address;
+    const contact = settings?.contact;
 
     const doc = new PDFDocument({ margin: 40 });
     res.setHeader('Content-Type', 'application/pdf');
@@ -493,7 +519,7 @@ export async function registerRoutes(
     doc.pipe(res);
 
     // Generate PDF content using the helper function
-    generateHomeworkPDF(doc, className, date, entries, allSubjects, schoolName, logoUrl, watermarkUrl);
+    generateHomeworkPDF(doc, className, date, entries, allSubjects, schoolName, logoUrl, watermarkUrl, address, contact);
 
     doc.end();
   });

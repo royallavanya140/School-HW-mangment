@@ -4,7 +4,7 @@ import { useCreateHomework, useHomework, useUpdateHomework, useDeleteHomework } 
 import { useSubjects, useSettings } from "@/hooks/use-settings";
 import { useAuth } from "@/hooks/use-auth";
 import { format } from "date-fns";
-import { Calendar as CalendarIcon, Save, Loader2, Download, Trash2, Check, FileImage, FileDown } from "lucide-react";
+import { Calendar as CalendarIcon, Save, Loader2, Download, Trash2, Check, FileImage, FileDown, Eye } from "lucide-react";
 import { PageLoader } from "@/components/ui/loader";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -29,9 +29,16 @@ import {
   DropdownMenuTrigger,
   DropdownMenuLabel,
 } from "@/components/ui/dropdown-menu";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { cn } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
 import { downloadHomeworkAsImage } from "@/hooks/use-download-homework-image";
+import { HomeworkTemplate } from "@/components/HomeworkTemplate";
 
 const ACTIVITY_TYPES = ["Reading", "Writing", "Read and Write", "Learning", "Project", "Activity", "Test", "Revise", "Complete"];
 const SOURCES = ["Textbook", "Material", "Workbook", "Worksheet", "Note Book", "C/W", "H/W"];
@@ -78,8 +85,10 @@ export default function TeacherEntryPage() {
     if (selectedSubjectId && existingHomework) {
       const existing = existingHomework.find(hw => hw.subjectId === Number(selectedSubjectId));
       if (existing) {
-        setActivityType(existing.activityType || "");
-        setSource(existing.source || "Textbook");
+        const at = existing.activityType || "";
+        const src = existing.source || "";
+        setActivityType(at === "__none__" ? "" : at);
+        setSource(src === "__none__" ? "Textbook" : src);
         setChapter(existing.chapter || "");
         setPage(existing.page || "");
         setDescription(existing.description || "");
@@ -169,6 +178,7 @@ export default function TeacherEntryPage() {
 
   const { data: settings } = useSettings();
   const [downloadingImage, setDownloadingImage] = useState(false);
+  const [previewOpen, setPreviewOpen] = useState(false);
 
   const downloadPDF = () => {
     window.open(`/api/homework/download/${user?.assignedClass}?date=${dateString}`, '_blank');
@@ -190,6 +200,8 @@ export default function TeacherEntryPage() {
           schoolName: settings?.schoolName ?? "School Connect",
           logoUrl: settings?.logoUrl ?? null,
           watermarkUrl: settings?.watermarkUrl ?? null,
+          address: settings?.address ?? null,
+          contact: settings?.contact ?? null,
         },
         `homework_${cl}_${dateString}.png`
       );
@@ -234,6 +246,15 @@ export default function TeacherEntryPage() {
                 />
               </PopoverContent>
             </Popover>
+            <Button
+              variant="outline"
+              className="h-10 border-2"
+              onClick={() => setPreviewOpen(true)}
+              disabled={!existingHomework?.length}
+            >
+              <Eye className="mr-2 h-4 w-4" />
+              Preview
+            </Button>
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button
@@ -267,6 +288,29 @@ export default function TeacherEntryPage() {
             </DropdownMenu>
           </div>
         </div>
+
+        {/* Preview dialog */}
+        <Dialog open={previewOpen} onOpenChange={setPreviewOpen}>
+          <DialogContent className="max-w-[min(640px,95vw)] max-h-[90vh] overflow-hidden flex flex-col p-0">
+            <DialogHeader className="px-6 pt-6 pb-2">
+              <DialogTitle>Homework diary preview</DialogTitle>
+            </DialogHeader>
+            <div className="overflow-auto flex-1 px-6 pb-6">
+              {user?.assignedClass && existingHomework && (
+                <HomeworkTemplate
+                  className={user.assignedClass}
+                  date={dateString}
+                  entries={existingHomework}
+                  schoolName={settings?.schoolName ?? "School Connect"}
+                  logoUrl={settings?.logoUrl ?? null}
+                  watermarkUrl={settings?.watermarkUrl ?? null}
+                  address={settings?.address ?? null}
+                  contact={settings?.contact ?? null}
+                />
+              )}
+            </div>
+          </DialogContent>
+        </Dialog>
 
         {/* Main Entry Card */}
         <Card className="border-2 shadow-sm">
@@ -303,7 +347,6 @@ export default function TeacherEntryPage() {
                     <SelectValue placeholder="Activity" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="__none__">None</SelectItem>
                     {ACTIVITY_TYPES.map((type) => (
                       <SelectItem key={type} value={type}>{type}</SelectItem>
                     ))}
@@ -317,7 +360,6 @@ export default function TeacherEntryPage() {
                     <SelectValue placeholder="Source" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="__none__">None</SelectItem>
                     {SOURCES.map((src) => (
                       <SelectItem key={src} value={src}>{src}</SelectItem>
                     ))}

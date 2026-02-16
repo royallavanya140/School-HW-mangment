@@ -11,6 +11,8 @@ export type ExportImageParams = {
   schoolName: string;
   logoUrl?: string | null;
   watermarkUrl?: string | null;
+  address?: string | null;
+  contact?: string | null;
 };
 
 export async function downloadHomeworkAsImage(
@@ -19,7 +21,7 @@ export async function downloadHomeworkAsImage(
 ): Promise<void> {
   const wrapper = document.createElement("div");
   wrapper.style.cssText =
-    "position:fixed;left:-9999px;top:0;z-index:-1;pointer-events:none;";
+    "position:fixed;left:-9999px;top:0;width:595px;min-height:900px;z-index:-1;pointer-events:none;overflow:visible;";
   document.body.appendChild(wrapper);
 
   const root = createRoot(wrapper);
@@ -31,6 +33,8 @@ export async function downloadHomeworkAsImage(
       schoolName: params.schoolName,
       logoUrl: params.logoUrl,
       watermarkUrl: params.watermarkUrl,
+      address: params.address,
+      contact: params.contact,
     })
   );
 
@@ -44,10 +48,12 @@ export async function downloadHomeworkAsImage(
   }
 
   const canvas = await html2canvas(templateEl, {
-    scale: 2,
+    scale: 4,
     useCORS: true,
     backgroundColor: "#ffffff",
     logging: false,
+    scrollX: 0,
+    scrollY: 0,
   });
 
   root.unmount();

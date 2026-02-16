@@ -4,7 +4,7 @@ import { useHomework } from "@/hooks/use-homework";
 import { useSettings } from "@/hooks/use-settings";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Calendar as CalendarIcon, Download, Filter, FileText, Edit, FileImage, FileDown } from "lucide-react";
+import { Calendar as CalendarIcon, Download, Filter, FileText, Edit, FileImage, FileDown, Eye } from "lucide-react";
 import { format } from "date-fns";
 import { Calendar } from "@/components/ui/calendar";
 import {
@@ -26,7 +26,14 @@ import {
   DropdownMenuTrigger,
   DropdownMenuLabel,
 } from "@/components/ui/dropdown-menu";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { PageLoader } from "@/components/ui/loader";
+import { HomeworkTemplate } from "@/components/HomeworkTemplate";
 import { api, buildUrl } from "@shared/routes";
 import type { HomeworkResponse } from "@shared/schema";
 import { cn } from "@/lib/utils";
@@ -41,6 +48,7 @@ export default function AdminHomeworkPage() {
   const [selectedClass, setSelectedClass] = useState<string>("All");
   const [editHomework, setEditHomework] = useState<HomeworkResponse | null>(null);
   const [downloadingImage, setDownloadingImage] = useState<string | null>(null);
+  const [previewClass, setPreviewClass] = useState<string | null>(null);
   const { toast } = useToast();
   const { data: settings } = useSettings();
 
@@ -77,6 +85,8 @@ export default function AdminHomeworkPage() {
           schoolName: settings?.schoolName ?? "School Connect",
           logoUrl: settings?.logoUrl ?? null,
           watermarkUrl: settings?.watermarkUrl ?? null,
+          address: settings?.address ?? null,
+          contact: settings?.contact ?? null,
         },
         `homework_${className}_${dateString}.png`
       );
@@ -174,40 +184,51 @@ export default function AdminHomeworkPage() {
                                     Class {className}
                                 </span>
                             </h2>
-                            <DropdownMenu>
-                              <DropdownMenuTrigger asChild>
-                                <Button
-                                  size="sm"
-                                  variant="outline"
-                                  className="gap-2 border-primary/30 hover:bg-primary/5"
-                                  disabled={downloadingImage === className}
-                                >
-                                  {downloadingImage === className ? (
-                                    <span className="animate-pulse">...</span>
-                                  ) : (
-                                    <Download className="w-4 h-4" />
-                                  )}
-                                  Download
-                                </Button>
-                              </DropdownMenuTrigger>
-                              <DropdownMenuContent align="end" className="w-48">
-                                <DropdownMenuLabel>Download as</DropdownMenuLabel>
-                                <DropdownMenuItem
-                                  onClick={() => handleDownloadClassPDF(className)}
-                                  className="gap-2 cursor-pointer"
-                                >
-                                  <FileDown className="w-4 h-4" />
-                                  PDF
-                                </DropdownMenuItem>
-                                <DropdownMenuItem
-                                  onClick={() => handleDownloadClassImage(className, items ?? [])}
-                                  className="gap-2 cursor-pointer"
-                                >
-                                  <FileImage className="w-4 h-4" />
-                                  Image (PNG)
-                                </DropdownMenuItem>
-                              </DropdownMenuContent>
-                            </DropdownMenu>
+                            <div className="flex items-center gap-2">
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                className="gap-2 border-primary/30 hover:bg-primary/5"
+                                onClick={() => setPreviewClass(className)}
+                              >
+                                <Eye className="w-4 h-4" />
+                                Preview
+                              </Button>
+                              <DropdownMenu>
+                                <DropdownMenuTrigger asChild>
+                                  <Button
+                                    size="sm"
+                                    variant="outline"
+                                    className="gap-2 border-primary/30 hover:bg-primary/5"
+                                    disabled={downloadingImage === className}
+                                  >
+                                    {downloadingImage === className ? (
+                                      <span className="animate-pulse">...</span>
+                                    ) : (
+                                      <Download className="w-4 h-4" />
+                                    )}
+                                    Download
+                                  </Button>
+                                </DropdownMenuTrigger>
+                                <DropdownMenuContent align="end" className="w-48">
+                                  <DropdownMenuLabel>Download as</DropdownMenuLabel>
+                                  <DropdownMenuItem
+                                    onClick={() => handleDownloadClassPDF(className)}
+                                    className="gap-2 cursor-pointer"
+                                  >
+                                    <FileDown className="w-4 h-4" />
+                                    PDF
+                                  </DropdownMenuItem>
+                                  <DropdownMenuItem
+                                    onClick={() => handleDownloadClassImage(className, items ?? [])}
+                                    className="gap-2 cursor-pointer"
+                                  >
+                                    <FileImage className="w-4 h-4" />
+                                    Image (PNG)
+                                  </DropdownMenuItem>
+                                </DropdownMenuContent>
+                              </DropdownMenu>
+                            </div>
                         </div>
                         
                         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-2">
@@ -264,6 +285,29 @@ export default function AdminHomeworkPage() {
                 ))
             )}
         </div>
+
+        {/* Preview dialog */}
+        <Dialog open={!!previewClass} onOpenChange={(open) => !open && setPreviewClass(null)}>
+          <DialogContent className="max-w-[min(640px,95vw)] max-h-[90vh] overflow-hidden flex flex-col p-0">
+            <DialogHeader className="px-6 pt-6 pb-2">
+              <DialogTitle>Homework diary preview — Class {previewClass}</DialogTitle>
+            </DialogHeader>
+            <div className="overflow-auto flex-1 px-6 pb-6">
+              {previewClass && homeworkByClass[previewClass] && (
+                <HomeworkTemplate
+                  className={previewClass}
+                  date={dateString}
+                  entries={homeworkByClass[previewClass]}
+                  schoolName={settings?.schoolName ?? "School Connect"}
+                  logoUrl={settings?.logoUrl ?? null}
+                  watermarkUrl={settings?.watermarkUrl ?? null}
+                  address={settings?.address ?? null}
+                  contact={settings?.contact ?? null}
+                />
+              )}
+            </div>
+          </DialogContent>
+        </Dialog>
 
         {editHomework && (
           <HomeworkEditDialog 

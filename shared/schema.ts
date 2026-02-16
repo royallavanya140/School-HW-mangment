@@ -40,6 +40,8 @@ export const settings = pgTable("settings", {
   schoolName: text("school_name").default("My School"),
   logoUrl: text("logo_url"),
   watermarkUrl: text("watermark_url"),
+  address: text("address"),
+  contact: text("contact"),
 });
 
 // === RELATIONS ===
