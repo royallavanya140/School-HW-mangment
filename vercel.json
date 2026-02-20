@@ -1,5 +1,5 @@
 {
-  "buildCommand": "npm run build",
+  "buildCommand": "npm run build && npm run db:push && npm run db:seed",
   "outputDirectory": "dist/public",
   "devCommand": "npm run dev",
   "installCommand": "npm install"
