@@ -1,4 +1,5 @@
-import { createApp } from "../server/index";
+// Bundled by script/build.ts into api/server-app.mjs so Vercel has no ../server dependency
+import { createApp } from "./server-app.mjs";
 
 let appPromise: ReturnType<typeof createApp> | null = null;
 
