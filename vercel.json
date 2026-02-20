@@ -1,6 +1,7 @@
 {
-  "buildCommand": "npm run build && npm run db:push && npm run db:seed",
+  "buildCommand": "npm run build",
   "outputDirectory": "dist/public",
   "devCommand": "npm run dev",
-  "installCommand": "npm install"
+  "installCommand": "npm install",
+  "rewrites": [{ "source": "/api/(.*)", "destination": "/api?path=$1" }]
 }
