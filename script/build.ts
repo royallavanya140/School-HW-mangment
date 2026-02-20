@@ -1,6 +1,7 @@
 import { build as esbuild } from "esbuild";
 import { build as viteBuild } from "vite";
-import { rm, readFile } from "fs/promises";
+import { rm, readFile, copyFile } from "fs/promises";
+import path from "path";
 
 // server deps to bundle to reduce openat(2) syscalls
 // which helps cold start times
@@ -38,6 +39,13 @@ async function buildAll() {
 
   console.log("building client...");
   await viteBuild();
+
+  // Vercel: serve SPA for client-side routes (e.g. /dashboard) when deployed as static
+  const publicDir = path.join(process.cwd(), "dist", "public");
+  await copyFile(
+    path.join(publicDir, "index.html"),
+    path.join(publicDir, "404.html")
+  );
 
   console.log("building server...");
   const pkg = JSON.parse(await readFile("package.json", "utf-8"));

@@ -18,11 +18,11 @@ import {
   isHindi,
 } from "@shared/homework-format";
 
-// ESM: use import.meta.url; CJS bundle: use process.cwd()/server (import.meta is undefined in CJS)
+// CJS bundle (production): __dirname is dist/ → server is ../server. ESM (dev/tsx): use import.meta.url. Esbuild may warn "import.meta not available in cjs" — safe to ignore; the __dirname branch runs in production.
 const _serverDir =
-  typeof import.meta !== "undefined" && import.meta.url
-    ? path.dirname(fileURLToPath(import.meta.url))
-    : path.join(process.cwd(), "server");
+  typeof __dirname !== "undefined"
+    ? path.join(__dirname, "..", "server")
+    : path.dirname(fileURLToPath(import.meta.url));
 const FONTS_DIR = path.join(_serverDir, "fonts");
 
 // Layout constants (must match client HomeworkTemplate for same PDF/image format)
